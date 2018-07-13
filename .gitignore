@@ -34,3 +34,10 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+src/UWP
+src/Assets/HoloToolkit/
+src/Assets/OpenCVForUnity/
+
+src/Assets/HoloToolkit.meta
+src/Assets/OpenCVForUnity.meta
