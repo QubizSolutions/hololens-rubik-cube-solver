@@ -106,22 +106,22 @@ public class ShuffleCube {
         switch (color)
         {
             case CubeColor.black:
-                setColor = new Color(0, 0, 0);
+                setColor = Color.black;
                 break;
             case CubeColor.green:
-                setColor = new Color(0, 255, 31);
+                setColor = Color.green;
                 break;
             case CubeColor.yellow:
-                setColor = new Color(255, 252, 0);
+                setColor = Color.yellow;
                 break;
             case CubeColor.blue:
-                setColor = new Color(2, 0, 255);
+                setColor = Color.blue;
                 break;
             case CubeColor.red:
-                setColor = new Color(255, 0, 0);
+                setColor = Color.red;
                 break;
             case CubeColor.orange:
-                setColor = new Color(255, 120, 0);
+                setColor = new Color(255, 165, 0);
                 break;
         }
         return setColor;

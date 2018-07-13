@@ -81,7 +81,7 @@ public class ImageProcess : MonoBehaviour
     private void StopVideoMode()
     {
         Camera.main.GetComponent<VideoPanelApp>().enabled = false;
-        //VideoPanelApp.Instance.StopVideoMode();
+        //TODO: VideoPanelApp.Instance.StopVideoMode();
         GameObject.Find("Video Panel").SetActive(false);
         GameObject.Find("Camera Stream").SetActive(false);
     }
@@ -132,13 +132,11 @@ public class ImageProcess : MonoBehaviour
         Mat blackMask = new Mat();
         List<Mat> maskList = new List<Mat>();
 
-        //int sensitivity = 15;
         Core.inRange(procImage, new Scalar(90, 130, 130), new Scalar(130, 255, 255), blueMask);
         Core.inRange(procImage, new Scalar(160, 128, 128), new Scalar(180, 255, 255), redMask);
         Core.inRange(procImage, new Scalar(20, 120, 120), new Scalar(40, 255, 255), yellowMask);
         Core.inRange(procImage, new Scalar(40, 100, 100), new Scalar(80, 255, 255), greenMask);
         Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 60), blackMask);
-        //Core.inRange(procImage, new Scalar(0, 0, 255 - sensitivity), new Scalar(255, sensitivity, 255), blackMask);
         Core.inRange(procImage, new Scalar(0, 128, 128), new Scalar(22, 255, 255), orangeMask);
 
         maskList.Add(blueMask);

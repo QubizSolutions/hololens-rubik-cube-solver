@@ -21,7 +21,6 @@ public class CubeSolver : MonoBehaviour {
     {
         instance = this;
         rubikCube = GameObject.Find("RubikCube");
-        //rubikCube.SetActive(false);
     }
 
     void OnDestroy()
@@ -35,7 +34,6 @@ public class CubeSolver : MonoBehaviour {
     public void StartSolving(Dictionary<FaceName, List<CubeColor>> rubikFaces)
     {
         Debug.Log("StartSolving()");
-        //rubikCube.SetActive(true);
         Rotation.Instance.SetColors(rubikFaces);
 
         string front = "";

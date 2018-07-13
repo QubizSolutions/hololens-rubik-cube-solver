@@ -33,30 +33,6 @@ public class Rotation : MonoBehaviour {
         }
     }
 
-    //static string sequenceMoves = "R F D L U U U U L L L D D D F F F R R R B B B B";
-    //static string sequenceMoves = "U2 D2 R2 L2 F2 B2";
-    //static string sequenceMoves = "U U D D R R L L F F B B";
-    //static string sequenceMoves = "F F' B B' U U' D D' R R' L L'"; //D2 R2 L2 B2 F2";
-    //static char delimiter = ' ';
-    //string[] moves = sequenceMoves.Split(delimiter);
-
-    private Dictionary<FaceName, List<CubeColor>> shuffledDict = new Dictionary<FaceName, List<CubeColor>>()
-        {
-            { FaceName.Front , new List<CubeColor>() { CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black} },
-            { FaceName.Right , new List<CubeColor>() { CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green } },
-            { FaceName.Left , new List<CubeColor>() { CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue, CubeColor.green, CubeColor.blue } },
-            { FaceName.Back , new List<CubeColor>() { CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow, CubeColor.black, CubeColor.yellow } },
-            { FaceName.Down , new List<CubeColor>() { CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange } },
-            { FaceName.Up , new List<CubeColor>() { CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red, CubeColor.orange, CubeColor.red } }
-        };
-
-    //void Start ()
-    //{
-    //    SetColors(shuffledDict);
-    //    string moveSeq = "U2 D2 R2 L2 F2 B2";
-    //    StartSolvingAnimations(moveSeq);
-    //}
-
     public void SetColors(Dictionary<FaceName, List<CubeColor>> colorPattern)
     {
         print("SetColors()");
@@ -82,7 +58,7 @@ public class Rotation : MonoBehaviour {
     {
         var rotatePivot = new GameObject("rotatePivot");
         rotatePivot.transform.position = origin;
-        //Debug.Log("Get cubes from axis X with value of: " + (origin.x + faceIndicator));
+
         foreach (GameObject cube in cubes)
         {
             if (Math.Round(cube.transform.localPosition.x,2) == faceIndicator)
@@ -97,7 +73,7 @@ public class Rotation : MonoBehaviour {
     {
         var rotatePivot = new GameObject("rotatePivot");
         rotatePivot.transform.position = origin;
-        //Debug.Log("Get cubes from axis Y with value of: " + (origin.y + faceIndicator));
+        
         foreach (GameObject cube in cubes)
         {
             if (Math.Round(cube.transform.localPosition.y,2) == faceIndicator)
@@ -112,7 +88,7 @@ public class Rotation : MonoBehaviour {
     {
         var rotatePivot = new GameObject("rotatePivot");
         rotatePivot.transform.position = origin;
-        //Debug.Log("Get cubes from axis Z with value of: " + (origin.z + faceIndicator));
+        
         foreach (GameObject cube in cubes)
         {
             if (Math.Round(cube.transform.localPosition.z,2) == faceIndicator)
@@ -132,7 +108,6 @@ public class Rotation : MonoBehaviour {
             var cube = rotatePivot.transform.GetChild(i);
             cube.transform.parent = rubix.transform;
         }
-        //Debug.Log("Put back X cubes");
     }
 
     private IEnumerable<WaitForSeconds> RotateX(int faceIndicator, float targetAngle)
@@ -153,7 +128,6 @@ public class Rotation : MonoBehaviour {
         }
         rotatePivot.transform.rotation = toAngle;
 
-        //Debug.Log("Rotate on X axis");
         MoveCubesToParent(rotatePivot);
         Destroy(rotatePivot);
         yield return new WaitForSeconds(1f);
@@ -179,7 +153,6 @@ public class Rotation : MonoBehaviour {
         }
         rotatePivot.transform.rotation = toAngle;
 
-        //Debug.Log("Rotate on Y axis");
         MoveCubesToParent(rotatePivot);
         Destroy(rotatePivot);
         yield return new WaitForSeconds(1f);
@@ -204,7 +177,7 @@ public class Rotation : MonoBehaviour {
             yield return null;
         }
         rotatePivot.transform.rotation = toAngle;
-        //Debug.Log("Rotate on Z axis");
+
         MoveCubesToParent(rotatePivot);
         Destroy(rotatePivot);        
         yield return new WaitForSeconds(1f);
