@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class Cubies : IComparable<Cubies>
+public class Cubies
 {
     public int x { get; set; }
 
@@ -13,10 +13,5 @@ public class Cubies : IComparable<Cubies>
         this.x = x;
         this.y = y;
         this.color = color;
-    }
-
-    public int CompareTo(Cubies other)
-    {
-        return y.CompareTo(other.y);
     }
 }

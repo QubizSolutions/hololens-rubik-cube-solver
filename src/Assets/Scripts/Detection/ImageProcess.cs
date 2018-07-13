@@ -132,7 +132,7 @@ public class ImageProcess : MonoBehaviour
         Mat blackMask = new Mat();
         List<Mat> maskList = new List<Mat>();
 
-        int sensitivity = 15;
+        //int sensitivity = 15;
         Core.inRange(procImage, new Scalar(90, 130, 130), new Scalar(130, 255, 255), blueMask);
         Core.inRange(procImage, new Scalar(160, 128, 128), new Scalar(180, 255, 255), redMask);
         Core.inRange(procImage, new Scalar(20, 120, 120), new Scalar(40, 255, 255), yellowMask);
@@ -212,7 +212,7 @@ public class ImageProcess : MonoBehaviour
             for (int i = 0; i < cubies.Count; i += 3)
             {
                 List<Cubies> sublist = cubies.GetRange(i, 3);
-                sublist.Sort();
+                sublist.Sort((cube1, cube2) => cube1.x.CompareTo(cube2.x));
                 sublist.Reverse();
                 foreach (var cube in sublist)
                 {
@@ -249,157 +249,8 @@ public class ImageProcess : MonoBehaviour
             }
 
             Debug.Log("Number of faces detected: " + rubikFaces.Count);
-            foreach (var rubick in rubikFaces)
-            {
-                foreach (var value in rubick.Value)
-                {
-                    Debug.Log(value);
-                }
-            }
+            Rotation.Instance.SetColors(rubikFaces);
         }
-    }
-
-    // Thread part optimization 20 % :)
-    private void ScanPhotoInThread()
-    {
-        Texture2D imgTexture = null;        
-        Mat procImage = new Mat();
-        imgTexture = VideoPanel.imgTextures.Dequeue();
-        Mat imgMat = new Mat(imgTexture.height, imgTexture.width, CvType.CV_8UC3);
-        UnityEngine.WSA.Application.InvokeOnAppThread(() => {            
-            Utils.texture2DToMat(imgTexture, imgMat);
-        }, true);
-
-        Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_BGR2HSV);
-        Mat blueMask = new Mat();
-        Mat redMask = new Mat();
-        Mat orangeMask = new Mat();
-        Mat yellowMask = new Mat();
-        Mat greenMask = new Mat();
-        Mat blackMask = new Mat();
-        List<Mat> maskList = new List<Mat>();
-
-        Core.inRange(procImage, new Scalar(90, 100, 100), new Scalar(130, 255, 255), blueMask);
-        Core.inRange(procImage, new Scalar(160, 100, 100), new Scalar(180, 255, 255), redMask);
-        Core.inRange(procImage, new Scalar(22, 80, 80), new Scalar(38, 255, 255), yellowMask);
-        Core.inRange(procImage, new Scalar(40, 50, 50), new Scalar(80, 255, 255), greenMask);
-        Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 55), blackMask);
-        Core.inRange(procImage, new Scalar(0, 100, 100), new Scalar(22, 255, 255), orangeMask);
-
-
-        maskList.Add(blueMask);
-        maskList.Add(redMask);
-        maskList.Add(yellowMask);
-        maskList.Add(greenMask);
-        maskList.Add(blackMask);
-        maskList.Add(orangeMask);
-        
-        List<Cubies> cubies = new List<Cubies>();
-        List<CubeColor> facesColors = new List<CubeColor>();
-        
-        for (int i = 0; i < maskList.Count; i++)
-        {
-            Mat newImage = new Mat();
-            Core.bitwise_and(procImage, procImage, newImage, maskList[i]);
-
-            Mat edges = new Mat();
-            Mat hierarchy = new Mat();
-            List<MatOfPoint> contours = new List<MatOfPoint>();
-            List<MatOfPoint> bigContours = new List<MatOfPoint>();
-
-            Imgproc.GaussianBlur(newImage, newImage, new Size(3, 3), 1);
-            Imgproc.Canny(newImage, edges, 75, 255);
-            Imgproc.dilate(edges, edges, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1)), new Point(-1, -1), 2);
-            Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-            foreach (var contour in contours)
-            {
-                var area = Imgproc.contourArea(contour);
-                if (area > 500)
-                    bigContours.Add(contour);
-            }
-
-            MatOfPoint2f matOfPoint2f = new MatOfPoint2f();
-            MatOfPoint2f approxCurve = new MatOfPoint2f();
-            MatOfPoint approx = new MatOfPoint();
-
-            foreach (var contour in bigContours)
-            {
-                matOfPoint2f.fromList(contour.toList());
-                Imgproc.approxPolyDP(matOfPoint2f, approxCurve, 0.1 * Imgproc.arcLength(matOfPoint2f, true), true);
-
-                try
-                {
-                    approxCurve.convertTo(approx, CvType.CV_32S);
-                    OpenCVForUnity.Rect rect = Imgproc.boundingRect(approx);
-
-                    if (approx.total() == 4)
-                    {
-                        cubies.Add(new Cubies(rect.x, rect.y, colorsList[i]));
-
-                        Imgproc.rectangle(imgMat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0), 1);
-                    }
-                }
-                catch (ArgumentOutOfRangeException e) { }
-            }
-        }
-
-        Debug.Log("Number of cubies: " + cubies.Count);
-
-        if (cubies.Count == 9)
-        {
-            cubies.Sort((cube1, cube2) => cube1.y.CompareTo(cube2.y));
-            for (int i = 0; i < cubies.Count; i += 3)
-            {
-                var sublist = cubies.GetRange(i, 3);
-                sublist.Sort();
-                sublist.Reverse();
-                foreach (var cube in sublist)
-                {
-                    facesColors.Add(cube.color);
-                }
-            }
-
-            switch (facesColors[4])
-            {
-                case CubeColor.red:
-                    if (!rubikFaces.ContainsKey(FaceName.Up))
-                        rubikFaces.Add(FaceName.Up, facesColors);
-                    break;
-                case CubeColor.blue:
-                    if (!rubikFaces.ContainsKey(FaceName.Left))
-                        rubikFaces.Add(FaceName.Left, facesColors);
-                    break;
-                case CubeColor.black:
-                    if (!rubikFaces.ContainsKey(FaceName.Front))
-                        rubikFaces.Add(FaceName.Front, facesColors);
-                    break;
-                case CubeColor.orange:
-                    if (!rubikFaces.ContainsKey(FaceName.Down))
-                        rubikFaces.Add(FaceName.Down, facesColors);
-                    break;
-                case CubeColor.green:
-                    if (!rubikFaces.ContainsKey(FaceName.Right))
-                        rubikFaces.Add(FaceName.Right, facesColors);
-                    break;
-                case CubeColor.yellow:
-                    if (!rubikFaces.ContainsKey(FaceName.Back))
-                        rubikFaces.Add(FaceName.Back, facesColors);
-                    break;
-            }
-
-            Debug.Log("Number of faces detected: " + rubikFaces.Count);
-            foreach(var rubick in rubikFaces)
-            {
-                foreach(var value in rubick.Value)
-                {
-                    Debug.Log(value);
-                }
-            }
-        }
-        //UnityEngine.WSA.Application.InvokeOnAppThread(() => {
-        //    Utils.matToTexture2D(imgMat, imgTexture);
-        //}, false);
     }
 #endif
 }

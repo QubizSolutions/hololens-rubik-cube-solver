@@ -62,7 +62,8 @@ public class Rotation : MonoBehaviour {
         print("SetColors()");
         cubes = GameObject.FindGameObjectsWithTag("Cube");
         origin = rubix.transform.position;
-        ShuffleCube shuffle = new ShuffleCube(origin, colorPattern);
+        ShuffleCube shuffle = new ShuffleCube();
+        shuffle.SetFacesColors(origin, colorPattern);
     }
 
     public void StartSolvingAnimations(string moveSeq)

@@ -6,33 +6,15 @@ using System;
 
 public class ShuffleCube {
 
-    public Dictionary<FaceName, List<CubeColor>> rubikFaces;
-    private Dictionary<FaceName, Color> defaultMatDict;
-
-    public ShuffleCube(Vector3 origin, Dictionary<FaceName, List<CubeColor>> shuffledSeq)
-    {
-        rubikFaces = shuffledSeq;
-        GameObject cube0 = GameObject.Find("Cube0");
-        var mat = cube0.GetComponentInChildren<Renderer>().materials;             
-        defaultMatDict = new Dictionary<FaceName, Color>()
+    public void SetFacesColors(Vector3 origin, Dictionary<FaceName, List<CubeColor>> shuffledSeq)
+    { 
+        foreach(FaceName faceName in shuffledSeq.Keys)
         {
-            {FaceName.Front, mat[5].color },
-            {FaceName.Back, mat[3].color },
-            {FaceName.Right, mat[4].color },
-            {FaceName.Left, mat[2].color },
-            {FaceName.Up, mat[1].color },
-            {FaceName.Down, mat[0].color }
-        };     
-
-        SetMaterial(FaceName.Front, origin);
-        SetMaterial(FaceName.Back, origin);
-        SetMaterial(FaceName.Right, origin);
-        SetMaterial(FaceName.Left, origin);
-        SetMaterial(FaceName.Up, origin);
-        SetMaterial(FaceName.Down, origin);
+            SetMaterial(faceName, origin, shuffledSeq);
+        }
     }
 
-    private void SetMaterial(FaceName faceName, Vector3 origin)
+    private void SetMaterial(FaceName faceName, Vector3 origin, Dictionary<FaceName, List<CubeColor>> rubikFaces)
     {
         List<GameObject> cubes = GetFaceCubes(faceName, origin);
         for (int i = 0; i < rubikFaces[faceName].Count; i++)
@@ -40,7 +22,6 @@ public class ShuffleCube {
             GameObject cube = cubes[i];
             Material[] cubeMat = cube.GetComponentInChildren<Renderer>().materials; 
             var cubeColor = rubikFaces[faceName][i];
-            //Debug.Log(cube.name + cubeColor);
             SetCubeColor(cubeMat, cubeColor, faceName);
         }
     }
@@ -52,42 +33,36 @@ public class ShuffleCube {
         switch (faceName)
         {
             case FaceName.Front:
-                int faceIndicator = -2;
                 foreach(GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == -2).OrderBy((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.y).ToList())
                 {
                     listCubes.Add(cube);
                 }
                 break;
             case FaceName.Back:
-                faceIndicator = 2;
                 foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == 2).OrderByDescending((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.y).ToList())
                 {                    
                     listCubes.Add(cube);                                            
                 }
                 break;
             case FaceName.Up:
-                faceIndicator = 2;
                 foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == 2).OrderBy((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.z).ToList())
                 {
                     listCubes.Add(cube);                       
                 }
                 break;
             case FaceName.Down:
-                faceIndicator = -2;
                 foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == -2).OrderBy((c) => c.transform.position.x).OrderBy((c) => c.transform.position.z).ToList())
                 {
                     listCubes.Add(cube);                        
                 }
                 break;
             case FaceName.Right:
-                faceIndicator = 2;
                 foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == 2).OrderBy((c) => c.transform.position.z).OrderByDescending((c) => c.transform.position.y).ToList())
                 {
                     listCubes.Add(cube);                        
                 }
                 break;
             case FaceName.Left:
-                faceIndicator = -2;
                 foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == -2).OrderByDescending((c) => c.transform.position.z).OrderByDescending((c) => c.transform.position.y).ToList())
                 {
                     listCubes.Add(cube);                        
@@ -131,22 +106,22 @@ public class ShuffleCube {
         switch (color)
         {
             case CubeColor.black:
-                setColor =  defaultMatDict[FaceName.Front];
+                setColor = new Color(0, 0, 0);
                 break;
             case CubeColor.green:
-                setColor = defaultMatDict[FaceName.Right];
+                setColor = new Color(0, 255, 31);
                 break;
             case CubeColor.yellow:
-                setColor = defaultMatDict[FaceName.Back];
+                setColor = new Color(255, 252, 0);
                 break;
             case CubeColor.blue:
-                setColor = defaultMatDict[FaceName.Left];
+                setColor = new Color(2, 0, 255);
                 break;
             case CubeColor.red:
-                setColor = defaultMatDict[FaceName.Up];
+                setColor = new Color(255, 0, 0);
                 break;
             case CubeColor.orange:
-                setColor = defaultMatDict[FaceName.Down];
+                setColor = new Color(255, 120, 0);
                 break;
         }
         return setColor;
