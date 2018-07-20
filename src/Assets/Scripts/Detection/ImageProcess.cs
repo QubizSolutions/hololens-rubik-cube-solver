@@ -77,7 +77,7 @@ public class ImageProcess : MonoBehaviour
         Mat eq_img = new Mat();
 
         HistogramEqualizer(imgMat, eq_img);
-        Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(eq_img, procImage, Imgproc.COLOR_RGB2HSV);
 
         List<Mat> maskList = GetColorsMask(procImage);
         List<Cubies> cubies = new List<Cubies>();
@@ -102,8 +102,7 @@ public class ImageProcess : MonoBehaviour
 
     private void StopVideoMode()
     {
-        Camera.main.GetComponent<VideoPanelApp>().enabled = false;
-        //TODO: implement VideoPanelApp.Instance.StopVideoMode();
+        VideoPanelApp.Instance.StopVideoMode();
         GameObject.Find("Video Panel").SetActive(false);
         GameObject.Find("Camera Stream").SetActive(false);
     }
@@ -151,9 +150,8 @@ public class ImageProcess : MonoBehaviour
         Core.inRange(procImage, new Scalar(160, 120, 120), new Scalar(180, 255, 255), redMask);
         Core.inRange(procImage, new Scalar(20, 120, 120), new Scalar(40, 255, 255), yellowMask);
         Core.inRange(procImage, new Scalar(40, 100, 100), new Scalar(80, 255, 255), greenMask);
-        //Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 60), blackMask);
         Core.inRange(procImage, new Scalar(0, 0, 255 - sensitivity), new Scalar(255, sensitivity, 255), blackMask);
-        Core.inRange(procImage, new Scalar(0, 120, 120), new Scalar(22, 255, 255), orangeMask);
+        Core.inRange(procImage, new Scalar(5, 120, 120), new Scalar(22, 255, 255), orangeMask);
 
         maskList.Add(blueMask);
         maskList.Add(redMask);
@@ -164,7 +162,7 @@ public class ImageProcess : MonoBehaviour
 
         return maskList;
     }
-
+    
     private List<MatOfPoint> GetContours(Mat newImage)
     {
         Mat edges = new Mat();
