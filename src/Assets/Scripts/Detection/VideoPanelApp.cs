@@ -4,23 +4,17 @@
 //
 
 using UnityEngine;
-
 using System;
-
 using HoloLensCameraStream;
 
-/// <summary>
-/// This example gets the video frames at 30 fps and displays them on a Unity texture,
-/// which is locked the User's gaze.
-/// </summary>
 public class VideoPanelApp : MonoBehaviour
 {
     byte[] _latestImageBytes;
     HoloLensCameraStream.Resolution _resolution;
 
     //"Injected" objects.
-    VideoPanel _videoPanelUI;
     VideoCapture _videoCapture;
+    ImageProcess _imageProcess;
 
     IntPtr _spatialCoordinateSystemPtr;
 
@@ -41,10 +35,8 @@ public class VideoPanelApp : MonoBehaviour
         
         //Call this in Start() to ensure that the CameraStreamHelper is already "Awake".
         CameraStreamHelper.Instance.GetVideoCaptureAsync(OnVideoCaptureCreated);
-        //You could also do this "shortcut":
-        //CameraStreamManager.Instance.GetVideoCaptureAsync(v => videoCapture = v);
 
-        _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
+        _imageProcess = GameObject.FindObjectOfType<ImageProcess>();
     }
 
     private void OnDestroy()
@@ -85,8 +77,7 @@ public class VideoPanelApp : MonoBehaviour
         cameraParams.rotateImage180Degrees = true; //If your image is upside down, remove this line.
         cameraParams.enableHolograms = false;
 
-        // UnityEngine.WSA.Application.InvokeOnAppThread(() => { _videoPanelUI.SetResolution(_resolution.width, _resolution.height); }, false);
-        _videoPanelUI.SetResolution(_resolution.width, _resolution.height);
+        _imageProcess.SetResolution(_resolution.width, _resolution.height);
 
         videoCapture.StartVideoModeAsync(cameraParams, OnVideoModeStarted);
     }
@@ -97,7 +88,6 @@ public class VideoPanelApp : MonoBehaviour
         {
             _videoCapture.StopVideoModeAsync(OnVideoModeStoped);
             _videoCapture.FrameSampleAcquired -= OnFrameSampleAcquired;
-            _videoCapture.Dispose();
         }
     }
 
@@ -109,6 +99,7 @@ public class VideoPanelApp : MonoBehaviour
         }
 
         Debug.Log("Video mode stopped.");
+        _videoCapture.Dispose();
     }
 
     void OnVideoModeStarted(VideoCaptureResult result)
@@ -131,27 +122,13 @@ public class VideoPanelApp : MonoBehaviour
             _latestImageBytes = new byte[sample.dataLength];
         }
         sample.CopyRawImageDataIntoBuffer(_latestImageBytes);
-        
-        //If you need to get the cameraToWorld matrix for purposes of compositing you can do it like this
-        float[] cameraToWorldMatrix;
-        if (sample.TryGetCameraToWorldMatrix(out cameraToWorldMatrix) == false)
-        {
-            return;
-        }
-
-        //If you need to get the projection matrix for purposes of compositing you can do it like this
-        float[] projectionMatrix;
-        if (sample.TryGetProjectionMatrix(out projectionMatrix) == false)
-        {
-            return;
-        }
 
         sample.Dispose();
 
         //This is where we actually use the image data
         UnityEngine.WSA.Application.InvokeOnAppThread(() =>
         {
-            _videoPanelUI.SetBytes(_latestImageBytes);
+            _imageProcess.SetBytes(_latestImageBytes);
         }, false);
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 public class Rotation : MonoBehaviour {
 
     public GameObject rubix;
-    public float inTime = 3f;
+    public float speed = 3f;
 
     private Vector3 origin;
     private GameObject[] cubes;
@@ -23,6 +23,62 @@ public class Rotation : MonoBehaviour {
     private void Awake()
     {
         instance = this;
+    }
+
+    public void GetNextFace(Vector3 axis, float degrees)
+    {
+        StartCoroutine(RotateCube(axis, Vector3.zero, degrees, 0));
+    }
+
+    public void GetNextFace(Vector3 firstAxis, Vector3 secondAxis, float degrees_f, float degrees_s)
+    {
+        StartCoroutine(RotateCube(firstAxis, secondAxis, degrees_f, degrees_s));
+    }
+
+    IEnumerator RotateCube(Vector3 firsAxis, Vector3 secondAxis, float degrees_f, float degrees_s)
+    {
+        Quaternion fromAngle = rubix.transform.localRotation;
+        Quaternion toAngle;
+        float turningTime = 0;
+
+        if (firsAxis.Equals(Vector3.up))
+        {
+            toAngle = rubix.transform.localRotation * Quaternion.Euler(0f, degrees_f, 0f);
+        }
+        else
+        {
+            toAngle = rubix.transform.localRotation * Quaternion.Euler(degrees_f, 0f, 0f);
+        }
+
+        while (rubix.transform.localRotation != toAngle)
+        {
+            turningTime += Time.deltaTime * 0.3f;
+            rubix.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        if (!secondAxis.Equals(Vector3.zero))
+        {
+            fromAngle = rubix.transform.localRotation;
+            turningTime = 0;
+            if (secondAxis.Equals(Vector3.up))
+            {
+                toAngle = rubix.transform.localRotation * Quaternion.Euler(0f, degrees_s, 0f);
+            }
+            else
+            {
+                toAngle = Quaternion.Euler(degrees_s, 0f, 0f) * rubix.transform.localRotation;
+            }
+
+            while (rubix.transform.localRotation != toAngle)
+            {
+                turningTime += Time.deltaTime * 0.3f;
+                rubix.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
+
+                yield return new WaitForEndOfFrame();
+            }
+        }
     }
 
     void OnDestroy()
@@ -121,7 +177,7 @@ public class Rotation : MonoBehaviour {
             
         var fromAngle = rotatePivot.transform.rotation;
         var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for(var t = 0f; t <= 1; t += Time.deltaTime/inTime)
+        for(var t = 0f; t <= 1; t += Time.deltaTime/speed)
         {      
             rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle,t);
             yield return null;
@@ -146,7 +202,7 @@ public class Rotation : MonoBehaviour {
             byAngle = Vector3.down * targetAngle;
 
         var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for (var t = 0f; t <= 1; t += Time.deltaTime / inTime)
+        for (var t = 0f; t <= 1; t += Time.deltaTime / speed)
         {
             rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
             yield return null;
@@ -171,7 +227,7 @@ public class Rotation : MonoBehaviour {
             byAngle = Vector3.forward * targetAngle;
 
         var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for (var t = 0f; t <= 1; t += Time.deltaTime / inTime)
+        for (var t = 0f; t <= 1; t += Time.deltaTime / speed)
         {
             rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
             yield return null;

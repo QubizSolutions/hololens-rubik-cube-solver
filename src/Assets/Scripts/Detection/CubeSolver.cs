@@ -31,10 +31,9 @@ public class CubeSolver : MonoBehaviour {
         }
     }
 
-    public void StartSolving(Dictionary<FaceName, List<CubeColor>> rubikFaces)
+    public string GetSolvingMoves(Dictionary<FaceName, List<CubeColor>> rubikFaces)
     {
         Debug.Log("StartSolving()");
-        Rotation.Instance.SetColors(rubikFaces);
 
         string front = "";
         string back = "";
@@ -72,7 +71,7 @@ public class CubeSolver : MonoBehaviour {
         string solvedCube = Search.solution(cube, 25, false);
         Debug.Log("Solved cube moves: " + solvedCube);
 
-        Rotation.Instance.StartSolvingAnimations(solvedCube);
+        return solvedCube;
     }
 
     static string Color2Face(List<CubeColor> colors)

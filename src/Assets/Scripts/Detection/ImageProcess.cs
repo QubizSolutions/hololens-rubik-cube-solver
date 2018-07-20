@@ -2,57 +2,82 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-#if !UNITY_EDITOR
-using System.Threading.Tasks;
-#endif
+using System.Collections;
 
 public class ImageProcess : MonoBehaviour
 {
-#if !UNITY_EDITOR
+    private static Queue<Texture2D> imgTextures;
 
-    private Dictionary<FaceName, List<CubeColor>> rubikFaces = new Dictionary<FaceName, List<CubeColor>>();
-    private static List<CubeColor> colorsList = new List<CubeColor>()
+    private int _width, _height;
+
+    private Dictionary<FaceName, List<CubeColor>> rubikFaces;
+
+    private static List<CubeColor> colorsList;
+
+    void Start()
     {
-        CubeColor.blue,
-        CubeColor.red,
-        CubeColor.yellow,
-        CubeColor.green,
-        CubeColor.black,
-        CubeColor.orange
-    };
-    bool done = false;
-    
-    void Update()
-    {
-        if (done == true)
-            return;
-        if (rubikFaces.Keys.Count != 6)
+        imgTextures = new Queue<Texture2D>();
+        rubikFaces = new Dictionary<FaceName, List<CubeColor>>();
+        colorsList = new List<CubeColor>()
         {
-            if (VideoPanel.imgTextures.Count > 0)
+            CubeColor.blue,
+            CubeColor.red,
+            CubeColor.yellow,
+            CubeColor.green,
+            CubeColor.black,
+            CubeColor.orange
+        };
+
+        StartCoroutine(StartProcessing());
+    }
+
+    IEnumerator StartProcessing()
+    {
+        while (rubikFaces.Keys.Count != 6)
+        {
+            if (imgTextures.Count > 0)
             {
                 ScanPhoto();
             }
+
+            yield return new WaitForSeconds(2);
         }
-        else
+
+        VideoPanelApp.Instance.StopVideoMode();
+        string solvingMoves = CubeSolver.Instance.GetSolvingMoves(rubikFaces);
+        Rotation.Instance.StartSolvingAnimations(solvingMoves);
+    }
+
+    public void SetResolution(int width, int height)
+    {
+        _width = width;
+        _height = height;
+    }
+
+    public void SetBytes(byte[] image)
+    {
+        if (imgTextures.Count < 2)
         {
-            print(" -  Stop maping colors on HoloCube - ");
-            done = true;
-            StopVideoMode();
-            CubeSolver.Instance.StartSolving(rubikFaces);
+            Texture2D imgTexture = new Texture2D(_width, _height, TextureFormat.BGRA32, false);
+            imgTexture.LoadRawTextureData(image);
+            imgTexture.Apply();
+
+            imgTextures.Enqueue(imgTexture);
         }
     }
 
     private void ScanPhoto()
     {
-        Texture2D imgTexture = VideoPanel.imgTextures.Dequeue();
+        Texture2D imgTexture = imgTextures.Dequeue();
 
-        Mat imgMat = GetPhoto(imgTexture);
+        Mat imgMat = new Mat(imgTexture.height, imgTexture.width, CvType.CV_8UC3);
+        Utils.texture2DToMat(imgTexture, imgMat);
+
         Mat procImage = new Mat();
         Mat eq_img = new Mat();
 
         HistogramEqualizer(imgMat, eq_img);
-        Imgproc.cvtColor(eq_img, procImage, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_RGB2HSV);
 
         List<Mat> maskList = GetColorsMask(procImage);
         List<Cubies> cubies = new List<Cubies>();
@@ -67,31 +92,20 @@ public class ImageProcess : MonoBehaviour
 
         if (cubies != null)
         {
-            Resources.UnloadUnusedAssets();
             GetFaceColors(cubies);
         }
         else
         {
             Debug.Log("Cubes: " + cubies.Count);
         }
-
-        Utils.matToTexture2D(imgMat, imgTexture);
     }
 
     private void StopVideoMode()
     {
         Camera.main.GetComponent<VideoPanelApp>().enabled = false;
-        //TODO: VideoPanelApp.Instance.StopVideoMode();
+        //TODO: implement VideoPanelApp.Instance.StopVideoMode();
         GameObject.Find("Video Panel").SetActive(false);
         GameObject.Find("Camera Stream").SetActive(false);
-    }
-
-    private Mat GetPhoto(Texture2D imgTexture)
-    {
-        Mat imgMat = new Mat(imgTexture.height, imgTexture.width, CvType.CV_8UC3);
-        Utils.texture2DToMat(imgTexture, imgMat);
-
-        return imgMat;
     }
 
     private void ClaheEqualizer(Mat source, Mat destination, int clipLimit = 4)
@@ -115,7 +129,7 @@ public class ImageProcess : MonoBehaviour
 
         List<Mat> channels = new List<Mat>();
         Core.split(ycrcb, channels);
-        
+
         Imgproc.equalizeHist(channels[0], channels[0]);
 
         Core.merge(channels, ycrcb);
@@ -131,13 +145,15 @@ public class ImageProcess : MonoBehaviour
         Mat greenMask = new Mat();
         Mat blackMask = new Mat();
         List<Mat> maskList = new List<Mat>();
+        int sensitivity = 20;
 
-        Core.inRange(procImage, new Scalar(90, 130, 130), new Scalar(130, 255, 255), blueMask);
-        Core.inRange(procImage, new Scalar(160, 128, 128), new Scalar(180, 255, 255), redMask);
+        Core.inRange(procImage, new Scalar(90, 120, 120), new Scalar(130, 255, 255), blueMask);
+        Core.inRange(procImage, new Scalar(160, 120, 120), new Scalar(180, 255, 255), redMask);
         Core.inRange(procImage, new Scalar(20, 120, 120), new Scalar(40, 255, 255), yellowMask);
         Core.inRange(procImage, new Scalar(40, 100, 100), new Scalar(80, 255, 255), greenMask);
-        Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 60), blackMask);
-        Core.inRange(procImage, new Scalar(0, 128, 128), new Scalar(22, 255, 255), orangeMask);
+        //Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 60), blackMask);
+        Core.inRange(procImage, new Scalar(0, 0, 255 - sensitivity), new Scalar(255, sensitivity, 255), blackMask);
+        Core.inRange(procImage, new Scalar(0, 120, 120), new Scalar(22, 255, 255), orangeMask);
 
         maskList.Add(blueMask);
         maskList.Add(redMask);
@@ -190,7 +206,6 @@ public class ImageProcess : MonoBehaviour
                 if (approx.total() == 4)
                 {
                     cubies.Add(new Cubies(rect.x, rect.y, colorsList[index]));
-
                     Imgproc.rectangle(imgMat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 40, 150), 2);
                 }
             }
@@ -222,33 +237,71 @@ public class ImageProcess : MonoBehaviour
             {
                 case CubeColor.red:
                     if (!rubikFaces.ContainsKey(FaceName.Up))
+                    {
                         rubikFaces.Add(FaceName.Up, facesColors);
+                        GoToNextFace();
+                    }
                     break;
                 case CubeColor.blue:
                     if (!rubikFaces.ContainsKey(FaceName.Left))
+                    {
                         rubikFaces.Add(FaceName.Left, facesColors);
+                        GoToNextFace();
+                    }
                     break;
                 case CubeColor.black:
                     if (!rubikFaces.ContainsKey(FaceName.Front))
+                    {
                         rubikFaces.Add(FaceName.Front, facesColors);
+                        GoToNextFace();
+                    }
                     break;
                 case CubeColor.orange:
                     if (!rubikFaces.ContainsKey(FaceName.Down))
+                    {
                         rubikFaces.Add(FaceName.Down, facesColors);
+                        GoToNextFace();
+                    }
                     break;
                 case CubeColor.green:
                     if (!rubikFaces.ContainsKey(FaceName.Right))
+                    {
                         rubikFaces.Add(FaceName.Right, facesColors);
+                        GoToNextFace();
+                    }
                     break;
                 case CubeColor.yellow:
                     if (!rubikFaces.ContainsKey(FaceName.Back))
+                    {
                         rubikFaces.Add(FaceName.Back, facesColors);
+                        GoToNextFace();
+                    }
+                    break;
+                default:
+                    print("Are you sure you're using a standard rubik cube ?");
                     break;
             }
 
             Debug.Log("Number of faces detected: " + rubikFaces.Count);
-            Rotation.Instance.SetColors(rubikFaces);
+            Resources.UnloadUnusedAssets();
         }
     }
-#endif
+
+    public void GoToNextFace()
+    {
+        Rotation.Instance.SetColors(rubikFaces);
+
+        if (rubikFaces.Count < 4)
+        {
+            Rotation.Instance.GetNextFace(Vector3.up, 90f);
+        }
+        else if (rubikFaces.Count == 4)
+        {
+            Rotation.Instance.GetNextFace(Vector3.up, Vector3.right, 90f, 90f);
+        }
+        else
+        {
+            Rotation.Instance.GetNextFace(Vector3.right, 180f);
+        }
+    }
 }
