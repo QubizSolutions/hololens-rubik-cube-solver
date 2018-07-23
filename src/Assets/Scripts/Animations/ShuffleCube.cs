@@ -33,37 +33,37 @@ public class ShuffleCube {
         switch (faceName)
         {
             case FaceName.Front:
-                foreach(GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == -2).OrderBy((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.y).ToList())
+                foreach(GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == -2).OrderBy((c) => c.transform.localPosition.x).OrderByDescending((c) => c.transform.localPosition.y).ToList())
                 {
                     listCubes.Add(cube);
                 }
                 break;
             case FaceName.Back:
-                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == 2).OrderByDescending((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.y).ToList())
+                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.z == 2).OrderByDescending((c) => c.transform.localPosition.x).OrderByDescending((c) => c.transform.localPosition.y).ToList())
                 {                    
                     listCubes.Add(cube);                                            
                 }
                 break;
             case FaceName.Up:
-                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == 2).OrderBy((c) => c.transform.position.x).OrderByDescending((c) => c.transform.position.z).ToList())
+                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == 2).OrderBy((c) => c.transform.localPosition.x).OrderByDescending((c) => c.transform.localPosition.z).ToList())
                 {
                     listCubes.Add(cube);                       
                 }
                 break;
             case FaceName.Down:
-                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == -2).OrderBy((c) => c.transform.position.x).OrderBy((c) => c.transform.position.z).ToList())
+                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.y == -2).OrderBy((c) => c.transform.localPosition.x).OrderBy((c) => c.transform.localPosition.z).ToList())
                 {
                     listCubes.Add(cube);                        
                 }
                 break;
             case FaceName.Right:
-                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == 2).OrderBy((c) => c.transform.position.z).OrderByDescending((c) => c.transform.position.y).ToList())
+                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == 2).OrderBy((c) => c.transform.localPosition.z).OrderByDescending((c) => c.transform.localPosition.y).ToList())
                 {
-                    listCubes.Add(cube);                        
+                    listCubes.Add(cube);                   
                 }
                 break;
             case FaceName.Left:
-                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == -2).OrderByDescending((c) => c.transform.position.z).OrderByDescending((c) => c.transform.position.y).ToList())
+                foreach (GameObject cube in faceCubes.Where((c) => c.transform.localPosition.x == -2).OrderByDescending((c) => c.transform.localPosition.z).OrderByDescending((c) => c.transform.localPosition.y).ToList())
                 {
                     listCubes.Add(cube);                        
                 }

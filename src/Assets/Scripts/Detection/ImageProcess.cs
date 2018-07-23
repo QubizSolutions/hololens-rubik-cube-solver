@@ -76,8 +76,8 @@ public class ImageProcess : MonoBehaviour
         Mat procImage = new Mat();
         Mat eq_img = new Mat();
 
-        HistogramEqualizer(imgMat, eq_img);
-        Imgproc.cvtColor(eq_img, procImage, Imgproc.COLOR_RGB2HSV);
+        //HistogramEqualizer(imgMat, eq_img);
+        Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_RGB2HSV);
 
         List<Mat> maskList = GetColorsMask(procImage);
         List<Cubies> cubies = new List<Cubies>();
@@ -144,14 +144,14 @@ public class ImageProcess : MonoBehaviour
         Mat greenMask = new Mat();
         Mat blackMask = new Mat();
         List<Mat> maskList = new List<Mat>();
-        int sensitivity = 20;
+        //int sensitivity = 20;
 
-        Core.inRange(procImage, new Scalar(90, 120, 120), new Scalar(130, 255, 255), blueMask);
-        Core.inRange(procImage, new Scalar(160, 120, 120), new Scalar(180, 255, 255), redMask);
-        Core.inRange(procImage, new Scalar(20, 120, 120), new Scalar(40, 255, 255), yellowMask);
-        Core.inRange(procImage, new Scalar(40, 100, 100), new Scalar(80, 255, 255), greenMask);
-        Core.inRange(procImage, new Scalar(0, 0, 255 - sensitivity), new Scalar(255, sensitivity, 255), blackMask);
-        Core.inRange(procImage, new Scalar(5, 120, 120), new Scalar(22, 255, 255), orangeMask);
+        Core.inRange(procImage, new Scalar(90, 80, 80), new Scalar(130, 255, 255), blueMask);
+        Core.inRange(procImage, new Scalar(160, 80, 80), new Scalar(180, 255, 255), redMask);
+        Core.inRange(procImage, new Scalar(20, 80, 80), new Scalar(40, 255, 255), yellowMask);
+        Core.inRange(procImage, new Scalar(40, 80, 80), new Scalar(80, 255, 255), greenMask);
+        Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(255, 255, 40), blackMask);
+        Core.inRange(procImage, new Scalar(5, 80, 80), new Scalar(22, 255, 255), orangeMask);
 
         maskList.Add(blueMask);
         maskList.Add(redMask);
