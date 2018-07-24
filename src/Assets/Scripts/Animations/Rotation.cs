@@ -5,10 +5,8 @@ using UnityEngine;
 
 public class Rotation : MonoBehaviour {
 
-    public GameObject rubix;
     public float speed = 3f;
 
-    private Vector3 origin;
     private GameObject[] cubes;
 
     private static Rotation instance;
@@ -37,55 +35,47 @@ public class Rotation : MonoBehaviour {
 
     IEnumerator RotateCube(Vector3 firsAxis, Vector3 secondAxis, float degrees_f, float degrees_s)
     {
-        Quaternion fromAngle = rubix.transform.localRotation;
+        Quaternion fromAngle = gameObject.transform.localRotation;
         Quaternion toAngle;
         float turningTime = 0;
 
         if (firsAxis.Equals(Vector3.up))
         {
-            toAngle = rubix.transform.localRotation * Quaternion.Euler(0f, degrees_f, 0f);
+            toAngle = gameObject.transform.localRotation * Quaternion.Euler(0f, degrees_f, 0f);
         }
         else
         {
-            toAngle = rubix.transform.localRotation * Quaternion.Euler(degrees_f, 0f, 0f);
+            toAngle = gameObject.transform.localRotation * Quaternion.Euler(degrees_f, 0f, 0f);
         }
 
-        while (rubix.transform.localRotation != toAngle)
+        while (gameObject.transform.localRotation != toAngle)
         {
             turningTime += Time.deltaTime * 0.3f;
-            rubix.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
+            gameObject.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
 
             yield return new WaitForEndOfFrame();
         }
 
         if (!secondAxis.Equals(Vector3.zero))
         {
-            fromAngle = rubix.transform.localRotation;
+            fromAngle = gameObject.transform.localRotation;
             turningTime = 0;
             if (secondAxis.Equals(Vector3.up))
             {
-                toAngle = rubix.transform.localRotation * Quaternion.Euler(0f, degrees_s, 0f);
+                toAngle = gameObject.transform.localRotation * Quaternion.Euler(0f, degrees_s, 0f);
             }
             else
             {
-                toAngle = Quaternion.Euler(degrees_s, 0f, 0f) * rubix.transform.localRotation;
+                toAngle = Quaternion.Euler(degrees_s, 0f, 0f) * gameObject.transform.localRotation;
             }
 
-            while (rubix.transform.localRotation != toAngle)
+            while (gameObject.transform.localRotation != toAngle)
             {
                 turningTime += Time.deltaTime * 0.3f;
-                rubix.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
+                gameObject.transform.localRotation = Quaternion.Lerp(fromAngle, toAngle, turningTime);
 
                 yield return new WaitForEndOfFrame();
             }
-        }
-    }
-
-    void OnDestroy()
-    {
-        if (instance == this)
-        {
-            instance = null;
         }
     }
 
@@ -93,9 +83,8 @@ public class Rotation : MonoBehaviour {
     {
         print("SetColors()");
         cubes = GameObject.FindGameObjectsWithTag("Cube");
-        origin = rubix.transform.position;
         ShuffleCube shuffle = new ShuffleCube();
-        shuffle.SetFacesColors(origin, colorPattern);
+        shuffle.SetFacesColors(gameObject.transform.position, colorPattern);
     }
 
     public void StartSolvingAnimations(string moveSeq)
@@ -110,134 +99,103 @@ public class Rotation : MonoBehaviour {
         StartCoroutine(Rotate(moves));
     }
 
-    GameObject SelectFaceOnXAxis(int faceIndicator)
-    {
-        var rotatePivot = new GameObject("rotatePivot");
-        rotatePivot.transform.position = origin;
-
-        foreach (GameObject cube in cubes)
-        {
-            if (Math.Round(cube.transform.localPosition.x,2) == faceIndicator)
-            {
-                cube.transform.parent = rotatePivot.transform;
-            }
-        }
-        return rotatePivot;
-    }
-
-    GameObject SelectFaceOnYAxis(int faceIndicator)
-    {
-        var rotatePivot = new GameObject("rotatePivot");
-        rotatePivot.transform.position = origin;
-        
-        foreach (GameObject cube in cubes)
-        {
-            if (Math.Round(cube.transform.localPosition.y,2) == faceIndicator)
-            {            
-                cube.transform.parent = rotatePivot.transform;               
-            }
-        }
-        return rotatePivot;
-    }
-
-    GameObject SelectFaceOnZAxis(int faceIndicator)
-    {
-        var rotatePivot = new GameObject("rotatePivot");
-        rotatePivot.transform.position = origin;
-        
-        foreach (GameObject cube in cubes)
-        {
-            if (Math.Round(cube.transform.localPosition.z,2) == faceIndicator)
-            {
-                cube.transform.parent = rotatePivot.transform;
-            }
-        }
-
-        return rotatePivot;
-    }
-
     void MoveCubesToParent(GameObject rotatePivot)
     {
         var number = rotatePivot.transform.childCount;
         for (int i = number - 1; i >= 0; i--)
         {
             var cube = rotatePivot.transform.GetChild(i);
-            cube.transform.parent = rubix.transform;
+            cube.transform.parent = gameObject.transform;
         }
     }
 
-    private IEnumerable<WaitForSeconds> RotateX(int faceIndicator, float targetAngle)
+    GameObject SelectFace(int faceIndicator, string axis)
     {
-        var rotatePivot = SelectFaceOnXAxis(faceIndicator);
-        Vector3 byAngle;
-        if(faceIndicator == 2)
-            byAngle = Vector3.right * targetAngle;   
-        else
-            byAngle = Vector3.left * targetAngle;
-            
-        var fromAngle = rotatePivot.transform.rotation;
-        var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for(var t = 0f; t <= 1; t += Time.deltaTime/speed)
-        {      
-            rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle,t);
+        GameObject rotatePivot = new GameObject("rotatePivot");
+        rotatePivot.transform.parent = gameObject.transform;
+        rotatePivot.transform.localRotation = Quaternion.identity;
+        rotatePivot.transform.localPosition = Vector3.zero;
+        rotatePivot.transform.localScale = Vector3.one;
+
+        switch (axis)
+        {
+            case "x":
+                foreach (GameObject cube in cubes)
+                {
+                    if (Math.Round(cube.transform.localPosition.x, 2) == faceIndicator)
+                    {
+                        cube.transform.parent = rotatePivot.transform;
+                    }
+                }
+                break;
+            case "y":
+                foreach (GameObject cube in cubes)
+                {
+                    if (Math.Round(cube.transform.localPosition.y, 2) == faceIndicator)
+                    {
+                        cube.transform.parent = rotatePivot.transform;
+                    }
+                }
+                break;
+            case "z":
+                foreach (GameObject cube in cubes)
+                {
+                    if (Math.Round(cube.transform.localPosition.z, 2) == faceIndicator)
+                    {
+                        cube.transform.parent = rotatePivot.transform;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        return rotatePivot;
+    }
+
+    private IEnumerable<WaitForSeconds> RotateFace(int faceIndicator, float targetAngle, string axis)
+    {
+        Vector3 byAngle = Vector3.zero;
+        GameObject rotatePivot = SelectFace(faceIndicator, axis);
+
+        switch(axis)
+        {
+            case "x":
+                if (faceIndicator == 2)
+                    byAngle = Vector3.right * targetAngle;
+                else
+                    byAngle = Vector3.left * targetAngle;
+                break;
+            case "y":
+                if (faceIndicator == 2)
+                    byAngle = Vector3.up * targetAngle;
+                else
+                    byAngle = Vector3.down * targetAngle;
+                break;
+            case "z":
+                if (faceIndicator == 2)
+                    byAngle = Vector3.back * targetAngle;
+                else
+                    byAngle = Vector3.forward * targetAngle;
+                break;
+            default:
+                break;
+        }
+
+        Quaternion fromAngle = rotatePivot.transform.localRotation;
+        Quaternion toAngle = Quaternion.Euler(rotatePivot.transform.localEulerAngles + byAngle);
+
+        for (var t = 0f; t <= 1; t += Time.deltaTime / speed)
+        {
+            rotatePivot.transform.localRotation = Quaternion.Slerp(fromAngle, toAngle, t);
             yield return null;
         }
-        rotatePivot.transform.rotation = toAngle;
+        rotatePivot.transform.localRotation = toAngle;
 
         MoveCubesToParent(rotatePivot);
         Destroy(rotatePivot);
         yield return new WaitForSeconds(1f);
         yield break;
-    }
-
-    private IEnumerable<WaitForSeconds> RotateY(int faceIndicator, float targetAngle)
-    {
-        var rotatePivot = SelectFaceOnYAxis(faceIndicator);
-        Vector3 byAngle;
-        var fromAngle = rotatePivot.transform.rotation;
-
-        if (faceIndicator == 2)
-            byAngle = Vector3.up * targetAngle;
-        else
-            byAngle = Vector3.down * targetAngle;
-
-        var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for (var t = 0f; t <= 1; t += Time.deltaTime / speed)
-        {
-            rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
-            yield return null;
-        }
-        rotatePivot.transform.rotation = toAngle;
-
-        MoveCubesToParent(rotatePivot);
-        Destroy(rotatePivot);
-        yield return new WaitForSeconds(1f);
-        yield break;
-    }
-
-    private IEnumerable<WaitForSeconds> RotateZ(int faceIndicator, float targetAngle)
-    {
-        var rotatePivot = SelectFaceOnZAxis(faceIndicator);
-        Vector3 byAngle;
-        var fromAngle = rotatePivot.transform.rotation;
-
-        if (faceIndicator == 2)
-            byAngle = Vector3.back * targetAngle;
-        else
-            byAngle = Vector3.forward * targetAngle;
-
-        var toAngle = Quaternion.Euler(rotatePivot.transform.eulerAngles + byAngle);
-        for (var t = 0f; t <= 1; t += Time.deltaTime / speed)
-        {
-            rotatePivot.transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
-            yield return null;
-        }
-        rotatePivot.transform.rotation = toAngle;
-
-        MoveCubesToParent(rotatePivot);
-        Destroy(rotatePivot);        
-        yield return new WaitForSeconds(1f);
-        yield break;        
     }
 
     IEnumerator Rotate(string[] moves)
@@ -255,7 +213,7 @@ public class Rotation : MonoBehaviour {
                 case "R":
                     faceIndicator = 2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }                    
@@ -263,7 +221,7 @@ public class Rotation : MonoBehaviour {
                 case "R'":
                     faceIndicator = 2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }
@@ -271,7 +229,7 @@ public class Rotation : MonoBehaviour {
                 case "R2":
                     faceIndicator = 2;
                     targetAngle = -180.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }
@@ -279,7 +237,7 @@ public class Rotation : MonoBehaviour {
                 case "L":
                     faceIndicator = -2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }
@@ -287,7 +245,7 @@ public class Rotation : MonoBehaviour {
                 case "L'":
                     faceIndicator = -2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }
@@ -295,7 +253,7 @@ public class Rotation : MonoBehaviour {
                 case "L2":
                     faceIndicator = -2;
                     targetAngle = 180.0f;
-                    foreach (var rotation in RotateX(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
                     }
@@ -303,7 +261,7 @@ public class Rotation : MonoBehaviour {
                 case "D":
                     faceIndicator = -2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -311,7 +269,7 @@ public class Rotation : MonoBehaviour {
                 case "D'":
                     faceIndicator = -2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -319,7 +277,7 @@ public class Rotation : MonoBehaviour {
                 case "D2":
                     faceIndicator = -2;
                     targetAngle = 180.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -327,7 +285,7 @@ public class Rotation : MonoBehaviour {
                 case "U":
                     faceIndicator = 2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -335,7 +293,7 @@ public class Rotation : MonoBehaviour {
                 case "U'":
                     faceIndicator = 2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -343,7 +301,7 @@ public class Rotation : MonoBehaviour {
                 case "U2":
                     faceIndicator = 2;
                     targetAngle = -180.0f;
-                    foreach (var rotation in RotateY(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
                     }
@@ -351,7 +309,7 @@ public class Rotation : MonoBehaviour {
                 case "F":
                     faceIndicator = -2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -359,7 +317,7 @@ public class Rotation : MonoBehaviour {
                 case "F'":
                     faceIndicator = -2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -367,7 +325,7 @@ public class Rotation : MonoBehaviour {
                 case "F2":
                     faceIndicator = -2;
                     targetAngle = 180.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -375,7 +333,7 @@ public class Rotation : MonoBehaviour {
                 case "B":
                     faceIndicator = 2;
                     targetAngle = 90.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -383,7 +341,7 @@ public class Rotation : MonoBehaviour {
                 case "B'":
                     faceIndicator = 2;
                     targetAngle = -90.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -391,7 +349,7 @@ public class Rotation : MonoBehaviour {
                 case "B2":
                     faceIndicator = 2;
                     targetAngle = -180.0f;
-                    foreach (var rotation in RotateZ(faceIndicator, targetAngle))
+                    foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
                     }
@@ -404,5 +362,13 @@ public class Rotation : MonoBehaviour {
         print("Reached the target");
         yield return new WaitForSeconds(3f);
         print("Rotation is now finished");
+    }
+
+    void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 }

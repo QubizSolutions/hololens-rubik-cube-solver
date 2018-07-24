@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
+using System.Threading.Tasks;
 
 public class ImageProcess : MonoBehaviour
 {
@@ -43,9 +44,18 @@ public class ImageProcess : MonoBehaviour
             yield return new WaitForSeconds(2);
         }
 
+        yield return new WaitForSeconds(4);
+
         VideoPanelApp.Instance.StopVideoMode();
-        string solvingMoves = CubeSolver.Instance.GetSolvingMoves(rubikFaces);
-        Rotation.Instance.StartSolvingAnimations(solvingMoves);
+        Rotation.Instance.SetColors(rubikFaces);
+        SolveCubeAsync();
+    }
+
+
+    public async Task SolveCubeAsync()
+    {
+        string result = await Task.Run(() => CubeSolver.Instance.GetSolvingMoves(rubikFaces));
+        Rotation.Instance.StartSolvingAnimations(result);
     }
 
     public void SetResolution(int width, int height)
@@ -56,7 +66,7 @@ public class ImageProcess : MonoBehaviour
 
     public void SetBytes(byte[] image)
     {
-        if (imgTextures.Count < 2)
+        if (imgTextures.Count == 0)
         {
             Texture2D imgTexture = new Texture2D(_width, _height, TextureFormat.BGRA32, false);
             imgTexture.LoadRawTextureData(image);
@@ -68,7 +78,7 @@ public class ImageProcess : MonoBehaviour
 
     private void ScanPhoto()
     {
-        Texture2D imgTexture = imgTextures.Dequeue();
+        Texture2D imgTexture = imgTextures.Peek();
 
         Mat imgMat = new Mat(imgTexture.height, imgTexture.width, CvType.CV_8UC3);
         Utils.texture2DToMat(imgTexture, imgMat);
@@ -76,11 +86,13 @@ public class ImageProcess : MonoBehaviour
         Mat procImage = new Mat();
         Mat eq_img = new Mat();
 
-        //HistogramEqualizer(imgMat, eq_img);
+        // TODO: Image equalization if needed
         Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_RGB2HSV);
 
-        List<Mat> maskList = GetColorsMask(procImage);
+        List<Mat> maskList = new List<Mat>();
         List<Cubies> cubies = new List<Cubies>();
+
+        GetColorsMask(procImage, maskList);
 
         for (int i = 0; i < maskList.Count; i++)
         {
@@ -98,6 +110,8 @@ public class ImageProcess : MonoBehaviour
         {
             Debug.Log("Cubes: " + cubies.Count);
         }
+
+        imgTextures.Dequeue();
     }
 
     private void StopVideoMode()
@@ -135,32 +149,36 @@ public class ImageProcess : MonoBehaviour
         Imgproc.cvtColor(ycrcb, destinaton, Imgproc.COLOR_YCrCb2RGB);
     }
 
-    private List<Mat> GetColorsMask(Mat procImage)
+    private void GetColorsMask(Mat procImage, List<Mat> maskList)
     {
         Mat blueMask = new Mat();
         Mat redMask = new Mat();
+        Mat redMaskHigh = new Mat();
+        Mat redMaskLow = new Mat();
         Mat orangeMask = new Mat();
         Mat yellowMask = new Mat();
         Mat greenMask = new Mat();
         Mat blackMask = new Mat();
-        List<Mat> maskList = new List<Mat>();
-        //int sensitivity = 20;
 
         Core.inRange(procImage, new Scalar(90, 80, 80), new Scalar(130, 255, 255), blueMask);
-        Core.inRange(procImage, new Scalar(160, 80, 80), new Scalar(180, 255, 255), redMask);
+        Core.inRange(procImage, new Scalar(160, 80, 80), new Scalar(180, 255, 255), redMaskHigh);
+        Core.inRange(procImage, new Scalar(0, 80, 80), new Scalar(8, 255, 255), redMaskLow);
         Core.inRange(procImage, new Scalar(20, 80, 80), new Scalar(40, 255, 255), yellowMask);
         Core.inRange(procImage, new Scalar(40, 80, 80), new Scalar(80, 255, 255), greenMask);
-        Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(255, 255, 40), blackMask);
-        Core.inRange(procImage, new Scalar(5, 80, 80), new Scalar(22, 255, 255), orangeMask);
-
+        Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 61), blackMask);
+        /*
+            white color threshold
+            Core.inRange(procImage, new Scalar(0, 0, 235), new Scalar(180, 20, 255), blackMask);
+         */
+        Core.inRange(procImage, new Scalar(8, 80, 80), new Scalar(22, 255, 255), orangeMask);
+        Core.bitwise_or(redMaskHigh, redMaskLow, redMask);
+        
         maskList.Add(blueMask);
         maskList.Add(redMask);
         maskList.Add(yellowMask);
         maskList.Add(greenMask);
         maskList.Add(blackMask);
         maskList.Add(orangeMask);
-
-        return maskList;
     }
     
     private List<MatOfPoint> GetContours(Mat newImage)
@@ -177,7 +195,7 @@ public class ImageProcess : MonoBehaviour
 
         foreach (var contour in contours)
         {
-            var area = Imgproc.contourArea(contour);
+            double area = Imgproc.contourArea(contour);
             if (area > 500)
                 bigContours.Add(contour);
         }
@@ -215,10 +233,10 @@ public class ImageProcess : MonoBehaviour
 
     private void GetFaceColors(List<Cubies> cubies)
     {
-        List<CubeColor> facesColors = new List<CubeColor>();
-
         if (cubies.Count == 9)
         {
+            List<CubeColor> facesColors = new List<CubeColor>();
+
             cubies.Sort((cube1, cube2) => cube1.y.CompareTo(cube2.y));
             for (int i = 0; i < cubies.Count; i += 3)
             {
@@ -297,9 +315,13 @@ public class ImageProcess : MonoBehaviour
         {
             Rotation.Instance.GetNextFace(Vector3.up, Vector3.right, 90f, 90f);
         }
-        else
+        else if (rubikFaces.Count == 5)
         {
             Rotation.Instance.GetNextFace(Vector3.right, 180f);
+        }
+        else
+        {
+            Rotation.Instance.GetNextFace(Vector3.right, 270f);
         }
     }
 }

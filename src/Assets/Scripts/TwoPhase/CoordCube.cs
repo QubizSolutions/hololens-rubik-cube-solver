@@ -444,9 +444,11 @@ namespace TwoPhase
             {
                 string filePath = "";
 #if !UNITY_EDITOR
-                filePath = Application.persistentDataPath;
+                UnityEngine.WSA.Application.InvokeOnAppThread(() => {
+                    filePath = Application.persistentDataPath;
+                }, true);
 #endif
-                return Path.Combine(Path.GetDirectoryName(filePath), "data.prun");
+                return Path.Combine(filePath, "data.prun");
             }
         }
 
