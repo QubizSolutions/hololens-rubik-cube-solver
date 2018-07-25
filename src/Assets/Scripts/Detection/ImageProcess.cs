@@ -28,7 +28,6 @@ public class ImageProcess : MonoBehaviour
             CubeColor.black,
             CubeColor.orange
         };
-
         StartCoroutine(StartProcessing());
     }
 
@@ -44,16 +43,17 @@ public class ImageProcess : MonoBehaviour
             yield return new WaitForSeconds(2);
         }
 
-        yield return new WaitForSeconds(4);
-
         VideoPanelApp.Instance.StopVideoMode();
-        Rotation.Instance.SetColors(rubikFaces);
+
+        yield return new WaitForSeconds(2);
+
         SolveCubeAsync();
     }
 
 
     public async Task SolveCubeAsync()
     {
+        Rotation.Instance.SetCubeForTutorial();
         string result = await Task.Run(() => CubeSolver.Instance.GetSolvingMoves(rubikFaces));
         Rotation.Instance.StartSolvingAnimations(result);
     }
@@ -162,7 +162,7 @@ public class ImageProcess : MonoBehaviour
 
         Core.inRange(procImage, new Scalar(90, 80, 80), new Scalar(130, 255, 255), blueMask);
         Core.inRange(procImage, new Scalar(160, 80, 80), new Scalar(180, 255, 255), redMaskHigh);
-        Core.inRange(procImage, new Scalar(0, 80, 80), new Scalar(8, 255, 255), redMaskLow);
+        Core.inRange(procImage, new Scalar(0, 80, 80), new Scalar(5, 255, 255), redMaskLow);
         Core.inRange(procImage, new Scalar(20, 80, 80), new Scalar(40, 255, 255), yellowMask);
         Core.inRange(procImage, new Scalar(40, 80, 80), new Scalar(80, 255, 255), greenMask);
         Core.inRange(procImage, new Scalar(0, 0, 0), new Scalar(180, 255, 61), blackMask);
@@ -170,7 +170,7 @@ public class ImageProcess : MonoBehaviour
             white color threshold
             Core.inRange(procImage, new Scalar(0, 0, 235), new Scalar(180, 20, 255), blackMask);
          */
-        Core.inRange(procImage, new Scalar(8, 80, 80), new Scalar(22, 255, 255), orangeMask);
+        Core.inRange(procImage, new Scalar(5, 80, 80), new Scalar(20, 255, 255), orangeMask);
         Core.bitwise_or(redMaskHigh, redMaskLow, redMask);
         
         maskList.Add(blueMask);
@@ -313,7 +313,7 @@ public class ImageProcess : MonoBehaviour
         }
         else if (rubikFaces.Count == 4)
         {
-            Rotation.Instance.GetNextFace(Vector3.up, Vector3.right, 90f, 90f);
+            Rotation.Instance.GetNextFace(Vector3.up, Vector3.right, 90f, -90f);
         }
         else if (rubikFaces.Count == 5)
         {
@@ -321,7 +321,7 @@ public class ImageProcess : MonoBehaviour
         }
         else
         {
-            Rotation.Instance.GetNextFace(Vector3.right, 270f);
+            Rotation.Instance.GetNextFace(Vector3.right, -90f);
         }
     }
 }

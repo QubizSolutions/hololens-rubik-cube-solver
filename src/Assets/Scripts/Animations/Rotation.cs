@@ -33,20 +33,12 @@ public class Rotation : MonoBehaviour {
         StartCoroutine(RotateCube(firstAxis, secondAxis, degrees_f, degrees_s));
     }
 
-    IEnumerator RotateCube(Vector3 firsAxis, Vector3 secondAxis, float degrees_f, float degrees_s)
+    IEnumerator RotateCube(Vector3 firstAxis, Vector3 secondAxis, float degrees_f, float degrees_s)
     {
-        Quaternion fromAngle = gameObject.transform.localRotation;
-        Quaternion toAngle;
         float turningTime = 0;
-
-        if (firsAxis.Equals(Vector3.up))
-        {
-            toAngle = gameObject.transform.localRotation * Quaternion.Euler(0f, degrees_f, 0f);
-        }
-        else
-        {
-            toAngle = gameObject.transform.localRotation * Quaternion.Euler(degrees_f, 0f, 0f);
-        }
+        Vector3 f_angle = firstAxis * degrees_f;
+        Quaternion fromAngle = gameObject.transform.localRotation;
+        Quaternion toAngle = Quaternion.Euler(gameObject.transform.localEulerAngles + f_angle);
 
         while (gameObject.transform.localRotation != toAngle)
         {
@@ -55,20 +47,15 @@ public class Rotation : MonoBehaviour {
 
             yield return new WaitForEndOfFrame();
         }
+        gameObject.transform.localRotation = toAngle;
 
         if (!secondAxis.Equals(Vector3.zero))
         {
-            fromAngle = gameObject.transform.localRotation;
             turningTime = 0;
-            if (secondAxis.Equals(Vector3.up))
-            {
-                toAngle = gameObject.transform.localRotation * Quaternion.Euler(0f, degrees_s, 0f);
-            }
-            else
-            {
-                toAngle = Quaternion.Euler(degrees_s, 0f, 0f) * gameObject.transform.localRotation;
-            }
-
+            Vector3 s_angle = secondAxis * degrees_s;
+            fromAngle = gameObject.transform.localRotation;
+            toAngle = Quaternion.Euler(gameObject.transform.localEulerAngles + s_angle);
+            
             while (gameObject.transform.localRotation != toAngle)
             {
                 turningTime += Time.deltaTime * 0.3f;
@@ -76,7 +63,32 @@ public class Rotation : MonoBehaviour {
 
                 yield return new WaitForEndOfFrame();
             }
+            gameObject.transform.localRotation = toAngle;
         }
+    }
+
+    public void SetCubeForTutorial()
+    {
+        StartCoroutine(ChangeCubePosition());
+    }
+
+    IEnumerator ChangeCubePosition()
+    {
+        Vector3 originalPosition = gameObject.transform.localPosition;
+        Vector3 newPosition = originalPosition + new Vector3(0, -0.1f, 0);
+
+        float distance = Vector3.Distance(originalPosition, newPosition);
+
+        float time = 0;
+        while(gameObject.transform.localPosition != newPosition)
+        {
+            time += Time.deltaTime / 20;
+            gameObject.transform.localPosition = Vector3.Slerp(originalPosition, newPosition, time / distance);
+            yield return null;
+        }
+        gameObject.transform.localPosition = newPosition;
+
+        GetNextFace(Vector3.up, Vector3.right, 30f, -10f);
     }
 
     public void SetColors(Dictionary<FaceName, List<CubeColor>> colorPattern)
@@ -92,10 +104,6 @@ public class Rotation : MonoBehaviour {
         print("StartSolvingAnimations()");
         char delimiter = ' ';
         string[] moves = moveSeq.Split(delimiter);
-        foreach(var move in moves)
-        {
-            print(move);
-        }
         StartCoroutine(Rotate(moves));
     }
 
