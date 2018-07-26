@@ -54,7 +54,7 @@ public class VideoPanelApp : MonoBehaviour
     {
         if (videoCapture == null)
         {
-            Debug.LogError("Did not find a video capture object. You may not be using the HoloLens.");
+           print("Did not find a video capture object. You may not be using the HoloLens.");
             return;
         }
         
@@ -95,10 +95,10 @@ public class VideoPanelApp : MonoBehaviour
     {
         if(result.success == false)
         {
-            Debug.LogWarning("Could not stop video mode.");
+            print("Could not stop video mode.");
         }
 
-        Debug.Log("Video mode stopped.");
+        print("Video mode stopped.");
         _videoCapture.Dispose();
     }
 
@@ -106,11 +106,11 @@ public class VideoPanelApp : MonoBehaviour
     {
         if (result.success == false)
         {
-            Debug.LogWarning("Could not start video mode.");
+            print("Could not start video mode.");
             return;
         }
 
-        Debug.Log("Video capture started.");
+        print("Video capture started.");
     }
 
     void OnFrameSampleAcquired(VideoCaptureSample sample)

@@ -86,7 +86,6 @@ public class ImageProcess : MonoBehaviour
         Mat procImage = new Mat();
         Mat eq_img = new Mat();
 
-        // TODO: Image equalization if needed
         Imgproc.cvtColor(imgMat, procImage, Imgproc.COLOR_RGB2HSV);
 
         List<Mat> maskList = new List<Mat>();
@@ -108,10 +107,11 @@ public class ImageProcess : MonoBehaviour
         }
         else
         {
-            Debug.Log("Cubes: " + cubies.Count);
+            print("Cubes: " + cubies.Count);
         }
 
         imgTextures.Dequeue();
+        Resources.UnloadUnusedAssets();
     }
 
     private void StopVideoMode()
@@ -228,7 +228,7 @@ public class ImageProcess : MonoBehaviour
             catch (ArgumentOutOfRangeException e) { }
         }
 
-        Debug.Log("Number of cubies: " + cubies.Count);
+        print("Number of cubies: " + cubies.Count);
     }
 
     private void GetFaceColors(List<Cubies> cubies)
@@ -298,8 +298,7 @@ public class ImageProcess : MonoBehaviour
                     break;
             }
 
-            Debug.Log("Number of faces detected: " + rubikFaces.Count);
-            Resources.UnloadUnusedAssets();
+            print("Number of faces detected: " + rubikFaces.Count);
         }
     }
 

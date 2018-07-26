@@ -96,7 +96,7 @@ public class Rotation : MonoBehaviour {
         print("SetColors()");
         cubes = GameObject.FindGameObjectsWithTag("Cube");
         ShuffleCube shuffle = new ShuffleCube();
-        shuffle.SetFacesColors(gameObject.transform.position, colorPattern);
+        shuffle.SetFacesColors(gameObject.transform.localPosition, colorPattern);
     }
 
     public void StartSolvingAnimations(string moveSeq)
@@ -244,7 +244,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "L":
                     faceIndicator = -2;
-                    targetAngle = -90.0f;
+                    targetAngle = 90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
@@ -252,7 +252,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "L'":
                     faceIndicator = -2;
-                    targetAngle = 90.0f;
+                    targetAngle = -90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
@@ -260,7 +260,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "L2":
                     faceIndicator = -2;
-                    targetAngle = 180.0f;
+                    targetAngle = -180.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "x"))
                     {
                         yield return rotation;
@@ -268,7 +268,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "D":
                     faceIndicator = -2;
-                    targetAngle = -90.0f;
+                    targetAngle = 90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
@@ -276,7 +276,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "D'":
                     faceIndicator = -2;
-                    targetAngle = 90.0f;
+                    targetAngle = -90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
@@ -284,7 +284,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "D2":
                     faceIndicator = -2;
-                    targetAngle = 180.0f;
+                    targetAngle = -180.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "y"))
                     {
                         yield return rotation;
@@ -340,7 +340,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "B":
                     faceIndicator = 2;
-                    targetAngle = 90.0f;
+                    targetAngle = -90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
@@ -348,7 +348,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "B'":
                     faceIndicator = 2;
-                    targetAngle = -90.0f;
+                    targetAngle = 90.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;
@@ -356,7 +356,7 @@ public class Rotation : MonoBehaviour {
                     break;
                 case "B2":
                     faceIndicator = 2;
-                    targetAngle = -180.0f;
+                    targetAngle = 180.0f;
                     foreach (var rotation in RotateFace(faceIndicator, targetAngle, "z"))
                     {
                         yield return rotation;

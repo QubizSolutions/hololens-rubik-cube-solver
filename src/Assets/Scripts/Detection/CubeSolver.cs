@@ -31,7 +31,6 @@ public class CubeSolver : MonoBehaviour {
 
     public string GetSolvingMoves(Dictionary<FaceName, List<CubeColor>> rubikFaces)
     {
-        Debug.Log("StartSolving()");
 
         string front = "";
         string back = "";
@@ -66,8 +65,8 @@ public class CubeSolver : MonoBehaviour {
         }
 
         string cube = top + right + front + down + left + back;
-        string solvedCube = Search.solution(cube, 25, false);
-        Debug.Log("Solved cube moves: " + solvedCube);
+      
+        string solvedCube = Search.solution(cube, 21, false);
 
         return solvedCube;
     }
