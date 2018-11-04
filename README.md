@@ -6,4 +6,4 @@ Solving a 3x3x3 Rubik's cube using HoloLens
 * Download OpenCv for Unity ([link](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088))
 
 ## Demo
-[Link](https://www.youtube.com/watch?v=acn1Anu5EOU) on youtube!
+[Link](https://www.youtube.com/watch?v=acn1Anu5EOU) on Youtube!
